@@ -1,0 +1,17 @@
+databaseChangeLog:
+    - include:
+        file: db/changelog/changeset/syeta_V010__tables.sql
+    - include:
+        file: db/changelog/changeset/syeta_V011__relations.sql
+    - include:
+        file: db/changelog/changeset/syeta_V012__alter.sql
+    - include:
+          file: db/changelog/changeset/syeta_V013__chat.sql
+    - include:
+          file: db/changelog/changeset/syeta_V016__postgis.sql
+    - include:
+          file: db/changelog/changeset/syeta_V013__chat_alter.sql
+    - include:
+          file: db/changelog/changeset/syeta_V017__event_files_order.sql
+    - include:
+          file: db/changelog/changeset/syeta_V018__event_notification.sql

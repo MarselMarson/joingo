@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test with JWT</title>
+    <style>
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>WebSocket Test with JWT</h1>
+
+<input type="text" id="jwtToken" placeholder="Enter JWT Token" />
+<input type="text" id="curUserId" placeholder="Enter User id" />
+<button id="connect">Connect to WebSocket</button>
+<button id="subscribe" disabled>Subscribe to Messages</button>
+
+<div>
+    <input type="text" id="recipientId" placeholder="Recipient ID" />
+    <input type="text" id="message" placeholder="Enter your message" />
+    <button id="send" disabled>Send Message</button>
+</div>
+
+<div id="messages">
+    <h3>Received Messages:</h3>
+</div>
+
+<!-- Подключение SockJS и STOMP.js через CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script>
+    let stompClient = null;
+    let userId = null;
+
+    document.getElementById('connect').onclick = function() {
+        const jwtToken = document.getElementById('jwtToken').value;
+        const socket = new SockJS('https://syeta.onrender.com/ch');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({Authorization: `Bearer ${jwtToken}`}, function(frame) {
+            console.log('Connected: ' + frame);
+            userId = document.getElementById('curUserId').value;
+            document.getElementById('subscribe').disabled = false;
+            document.getElementById('send').disabled = false;
+        });
+    };
+
+    document.getElementById('subscribe').onclick = function() {
+        if (userId) {
+            stompClient.subscribe(`/user/${userId}/queue/messages`, function(messageOutput) {
+                const message = JSON.parse(messageOutput.body);
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML += `<p><strong>Received from ${message.senderId}:</strong> ${message.content}</p>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+    };
+
+    document.getElementById('send').onclick = function() {
+        const recipientId = document.getElementById('recipientId').value;
+        const chatMessage = {
+            chatId: 1,
+            senderId: userId,
+            recipientId: recipientId,
+            content: document.getElementById('message').value
+        };
+        stompClient.send("/app/chat", {}, JSON.stringify(chatMessage));
+        document.getElementById('message').value = '';
+    };
+</script>
+</body>
+</html>
